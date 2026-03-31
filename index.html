@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>お客様アンケート - i.so-ji</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+        }
+
+        .container {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0077b6, #00b4d8);
+            color: #fff;
+            padding: 30px 24px;
+            text-align: center;
+        }
+        .header h1 { font-size: 20px; margin-bottom: 8px; }
+        .header p { font-size: 14px; opacity: 0.9; }
+        .header-staff { background: linear-gradient(135deg, #e65100, #ff8f00); }
+
+        .content { padding: 24px; }
+        .step { display: none; }
+        .step.active { display: block; }
+
+        /* プログレスバー */
+        .progress-bar {
+            display: flex; align-items: center;
+            padding: 16px 20px; background: #f8f9fa;
+        }
+        .progress-step {
+            display: flex; align-items: center;
+            font-size: 11px; color: #aaa; font-weight: 600; white-space: nowrap;
+        }
+        .progress-step.active { color: #0077b6; }
+        .progress-step.done { color: #34a853; }
+        .progress-num {
+            width: 22px; height: 22px; border-radius: 50%;
+            background: #ddd; color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; margin-right: 4px; flex-shrink: 0;
+        }
+        .progress-step.active .progress-num { background: #0077b6; }
+        .progress-step.done .progress-num { background: #34a853; }
+        .progress-line { flex: 1; height: 2px; background: #ddd; margin: 0 8px; }
+        .progress-line.done { background: #34a853; }
+
+        /* 星評価 */
+        .star-section { text-align: center; }
+        .star-section h3 { font-size: 16px; color: #333; margin-bottom: 8px; }
+        .star-section .sub { font-size: 14px; color: #777; margin-bottom: 16px; }
+        .star-rating { display: flex; justify-content: center; gap: 8px; margin: 16px 0; }
+        .star {
+            font-size: 44px; cursor: pointer; color: #ddd;
+            transition: color 0.2s, transform 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .star:hover, .star.active { color: #fbbc04; transform: scale(1.15); }
+
+        /* サービス選択 */
+        .service-section h3 { font-size: 16px; color: #333; margin-bottom: 4px; }
+        .service-sub { font-size: 13px; color: #999; margin-bottom: 14px; }
+        .service-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .service-btn {
+            padding: 12px 10px; border: 2px solid #e0e0e0; border-radius: 12px;
+            background: #fff; font-size: 14px; font-weight: 500; color: #333;
+            cursor: pointer; transition: all 0.2s; text-align: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .service-btn:hover { border-color: #0077b6; background: #f0f8ff; }
+        .service-btn.selected {
+            background: #0077b6; border-color: #0077b6; color: #fff;
+            box-shadow: 0 2px 8px rgba(0,119,182,0.3);
+        }
+
+        /* 詳細 */
+        .detail-section h3 { font-size: 16px; color: #333; margin-bottom: 16px; }
+        .detail-group { margin-bottom: 20px; }
+        .detail-label { font-size: 15px; color: #333; font-weight: 600; margin-bottom: 10px; }
+        .detail-hint { font-size: 12px; color: #999; font-weight: 400; margin-left: 4px; }
+        .visit-toggle { display: flex; gap: 10px; }
+        .visit-btn {
+            flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 12px;
+            background: #fff; font-size: 15px; font-weight: 600; color: #333;
+            cursor: pointer; transition: all 0.2s; text-align: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .visit-btn.selected { background: #0077b6; border-color: #0077b6; color: #fff; }
+        .concern-list { display: flex; flex-direction: column; gap: 8px; }
+        .concern-btn {
+            padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 12px;
+            background: #fff; font-size: 14px; color: #333;
+            cursor: pointer; transition: all 0.2s; text-align: left;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .concern-btn:hover { border-color: #0077b6; background: #f0f8ff; }
+        .concern-btn.selected { background: #e8f4fd; border-color: #0077b6; color: #0077b6; font-weight: 600; }
+        .other-textarea {
+            width: 100%; min-height: 70px; border: 2px solid #ddd; border-radius: 10px;
+            padding: 12px; font-size: 14px; line-height: 1.6; font-family: inherit;
+            resize: vertical; margin-top: 8px; transition: border-color 0.2s;
+        }
+        .other-textarea:focus { outline: none; border-color: #0077b6; }
+        .other-textarea::placeholder { color: #bbb; }
+
+        /* チェックリスト */
+        .checklist-section h3 { font-size: 16px; color: #333; margin-bottom: 16px; }
+        .checklist { display: flex; flex-direction: column; gap: 12px; }
+        .check-item {
+            background: #f8f9fa; border: 1px solid #e8e8e8;
+            border-radius: 14px; padding: 14px 16px; transition: all 0.25s;
+        }
+        .check-item.answered-yes { background: #f0faf2; border-color: #b6dfc0; }
+        .check-item.answered-no { background: #fff; border-color: #e0e0e0; }
+        .check-item-label { display: flex; align-items: center; margin-bottom: 10px; }
+        .check-icon {
+            width: 26px; height: 26px; border: 2px solid #bbb; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin-right: 12px; flex-shrink: 0; font-size: 14px; font-weight: 700;
+            color: transparent; background: #fff; transition: all 0.25s;
+        }
+        .check-item.answered-yes .check-icon {
+            background: #34a853; border-color: #34a853; color: #fff;
+            box-shadow: 0 2px 6px rgba(52,168,83,0.3);
+        }
+        .check-item.answered-no .check-icon { background: #e0e0e0; border-color: #d0d0d0; color: #fff; }
+        .check-label { font-size: 15px; color: #333; line-height: 1.4; flex: 1; }
+        .yn-buttons { display: flex; gap: 8px; margin-left: 36px; }
+        .yn-btn {
+            flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 10px;
+            background: #fff; font-size: 15px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; text-align: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .yn-btn.yes-btn { color: #34a853; }
+        .yn-btn.no-btn { color: #999; }
+        .yn-btn.yes-btn.selected { background: #34a853; border-color: #34a853; color: #fff; }
+        .yn-btn.no-btn.selected { background: #999; border-color: #999; color: #fff; }
+
+        /* ボタン */
+        .nav-buttons { display: flex; gap: 12px; margin-top: 24px; }
+        .btn {
+            flex: 1; padding: 14px; border: none; border-radius: 12px;
+            font-size: 16px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+        }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-back { background: #f1f3f4; color: #333; }
+        .btn-next { background: #0077b6; color: #fff; }
+        .btn-next:hover:not(:disabled) { background: #005f8a; transform: translateY(-1px); }
+        .btn-submit {
+            background: linear-gradient(135deg, #34a853, #0f9d58);
+            color: #fff; padding: 16px; font-size: 17px;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(52,168,83,0.4); }
+
+        /* 口コミプレビュー・編集 */
+        .review-preview {
+            background: #f8f9fa; border-radius: 12px; padding: 20px;
+            margin: 16px 0; border-left: 4px solid #0077b6;
+        }
+        .review-preview p { font-size: 15px; line-height: 1.8; color: #333; white-space: pre-line; }
+        .review-edit {
+            width: 100%; min-height: calc(100vh - 300px); border: 2px solid #ddd;
+            border-radius: 12px; padding: 16px; font-size: 15px; line-height: 1.8;
+            font-family: inherit; resize: vertical; margin: 16px 0; transition: border-color 0.2s;
+        }
+        .review-edit:focus { outline: none; border-color: #0077b6; }
+        .confirm-text { font-size: 15px; color: #555; text-align: center; margin: 12px 0; line-height: 1.6; }
+
+        /* 完了・ハンドオフ */
+        .done-icon { text-align: center; font-size: 60px; margin: 20px 0; }
+        .done-text { text-align: center; font-size: 18px; color: #333; font-weight: 600; }
+        .done-sub { text-align: center; font-size: 14px; color: #777; margin-top: 8px; line-height: 1.6; }
+        .handoff-screen { text-align: center; padding: 40px 20px; }
+        .handoff-icon { font-size: 64px; margin-bottom: 16px; }
+        .handoff-title { font-size: 20px; font-weight: 700; color: #333; margin-bottom: 12px; }
+        .handoff-desc { font-size: 15px; color: #666; line-height: 1.7; margin-bottom: 24px; }
+
+        /* ランディング */
+        .landing-buttons { display: flex; flex-direction: column; gap: 16px; padding: 20px 0; }
+        .landing-btn {
+            padding: 24px; border: 2px solid #e0e0e0; border-radius: 16px;
+            background: #fff; cursor: pointer; transition: all 0.2s;
+            text-align: center; -webkit-tap-highlight-color: transparent;
+        }
+        .landing-btn:hover { border-color: #0077b6; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .landing-btn .icon { font-size: 40px; margin-bottom: 8px; }
+        .landing-btn .title { font-size: 18px; font-weight: 700; color: #333; }
+        .landing-btn .desc { font-size: 13px; color: #888; margin-top: 4px; }
+
+        /* セッションコード */
+        .session-code {
+            font-size: 36px; font-weight: 800; letter-spacing: 8px;
+            color: #0077b6; text-align: center; padding: 20px;
+            background: #f0f8ff; border-radius: 16px; margin: 16px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .code-input {
+            width: 100%; padding: 16px; font-size: 28px; font-weight: 700;
+            text-align: center; letter-spacing: 8px; border: 2px solid #ddd;
+            border-radius: 12px; font-family: 'Courier New', monospace;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .code-input:focus { outline: none; border-color: #0077b6; }
+
+        /* 待機画面アニメーション */
+        .waiting-dots::after {
+            content: ''; animation: dots 1.5s steps(4, end) infinite;
+        }
+        @keyframes dots {
+            0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; }
+        }
+
+        /* スタッフバッジ */
+        .staff-badge {
+            display: inline-block; background: #ff6b35; color: #fff;
+            font-size: 12px; font-weight: 700; padding: 4px 12px;
+            border-radius: 20px; margin-bottom: 12px;
+        }
+
+        /* スタッフ：お客様情報カード */
+        .info-card {
+            background: #f8f9fa; border-radius: 12px; padding: 16px; margin-bottom: 16px;
+        }
+        .info-card h4 { font-size: 14px; color: #0077b6; margin-bottom: 8px; }
+        .info-card p { font-size: 14px; color: #333; line-height: 1.6; }
+        .info-stars { color: #fbbc04; font-size: 20px; }
+
+        /* 設定画面 */
+        .settings-panel {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); z-index: 100;
+            justify-content: center; align-items: center; padding: 20px;
+        }
+        .settings-panel.open { display: flex; }
+        .settings-box {
+            background: #fff; border-radius: 16px; padding: 24px;
+            max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto;
+        }
+        .settings-box h2 { margin-bottom: 16px; color: #333; }
+        .settings-box label { display: block; font-size: 14px; color: #555; margin-bottom: 4px; margin-top: 12px; }
+        .settings-box input, .settings-box textarea {
+            width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;
+            font-size: 14px; font-family: inherit;
+        }
+        .settings-box textarea { min-height: 80px; resize: vertical; }
+        .settings-btn-row { display: flex; gap: 8px; margin-top: 16px; }
+        .gear-btn {
+            position: fixed; bottom: 20px; right: 20px;
+            width: 50px; height: 50px; border-radius: 50%;
+            background: #333; color: #fff; border: none; font-size: 24px;
+            cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 50;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="app">
+    <!-- ===== ランディング ===== -->
+    <div id="landingMode">
+        <div class="header">
+            <h1 id="shopNameLanding"></h1>
+            <p>簡単なアンケートにご協力ください</p>
+        </div>
+        <div class="content">
+            <div class="landing-buttons">
+                <div class="landing-btn" onclick="startCustomer()">
+                    <div class="icon">&#128578;</div>
+                    <div class="title">お客様はこちら</div>
+                    <div class="desc">アンケートにご回答ください（30秒で完了）</div>
+                </div>
+                <div class="landing-btn" onclick="startStaff()">
+                    <div class="icon">&#128188;</div>
+                    <div class="title">スタッフはこちら</div>
+                    <div class="desc">口コミの編集・管理</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== お客様モード ===== -->
+    <div id="customerMode" style="display:none">
+        <div class="header">
+            <h1 id="shopNameCustomer"></h1>
+            <p>簡単なアンケートにご協力ください（30秒で完了）</p>
+        </div>
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-step active" id="ps0"><span class="progress-num">1</span>評価</div>
+            <div class="progress-line" id="pl0"></div>
+            <div class="progress-step" id="ps1"><span class="progress-num">2</span>内容</div>
+            <div class="progress-line" id="pl1"></div>
+            <div class="progress-step" id="ps2"><span class="progress-num">3</span>詳細</div>
+            <div class="progress-line" id="pl2"></div>
+            <div class="progress-step" id="ps3"><span class="progress-num">4</span>アンケート</div>
+        </div>
+        <div class="content">
+            <!-- C0: 星評価 -->
+            <div class="step active" id="c0">
+                <div class="star-section">
+                    <h3>サービスはいかがでしたか？</h3>
+                    <p class="sub">星をタップして評価してください</p>
+                    <div class="star-rating" id="starRating">
+                        <span class="star" data-value="1">&#9733;</span>
+                        <span class="star" data-value="2">&#9733;</span>
+                        <span class="star" data-value="3">&#9733;</span>
+                        <span class="star" data-value="4">&#9733;</span>
+                        <span class="star" data-value="5">&#9733;</span>
+                    </div>
+                    <div class="nav-buttons">
+                        <button class="btn btn-next" id="btnStarNext" disabled onclick="cGoTo(1)">次へ</button>
+                    </div>
+                </div>
+            </div>
+            <!-- C1: サービス選択（複数） -->
+            <div class="step" id="c1">
+                <div class="service-section">
+                    <h3>ご利用いただいたサービスは？</h3>
+                    <p class="service-sub">該当するものをすべてタップしてください（複数選択可）</p>
+                    <div class="service-grid" id="serviceGrid"></div>
+                </div>
+                <div class="nav-buttons">
+                    <button class="btn btn-back" onclick="cGoTo(0)">戻る</button>
+                    <button class="btn btn-next" id="btnServiceNext" disabled onclick="cGoTo(2)">次へ</button>
+                </div>
+            </div>
+            <!-- C2: ご利用詳細 -->
+            <div class="step" id="c2">
+                <div class="detail-section">
+                    <h3>ご利用について教えてください</h3>
+                    <div class="detail-group">
+                        <p class="detail-label">今回のご利用は？</p>
+                        <div class="visit-toggle">
+                            <button class="visit-btn" id="btnFirst" onclick="setVisitType('first')">初めて利用</button>
+                            <button class="visit-btn" id="btnRepeat" onclick="setVisitType('repeat')">2回目以上</button>
+                        </div>
+                    </div>
+                    <div class="detail-group">
+                        <p class="detail-label">ご依頼のきっかけは？<span class="detail-hint">（複数選択可）</span></p>
+                        <div class="concern-list" id="concernList"></div>
+                    </div>
+                </div>
+                <div class="nav-buttons">
+                    <button class="btn btn-back" onclick="cGoTo(1)">戻る</button>
+                    <button class="btn btn-next" id="btnDetailNext" disabled onclick="cGoTo(3)">次へ</button>
+                </div>
+            </div>
+            <!-- C3: アンケート -->
+            <div class="step" id="c3">
+                <div class="checklist-section">
+                    <h3>それぞれ「はい」か「いいえ」でお答えください</h3>
+                    <div class="checklist" id="checklist"></div>
+                </div>
+                <div class="nav-buttons">
+                    <button class="btn btn-back" onclick="cGoTo(2)">戻る</button>
+                    <button class="btn btn-next" id="btnCheckNext" disabled onclick="customerSubmit()">回答を送信する</button>
+                </div>
+            </div>
+            <!-- C4: 送信完了 → 待機 -->
+            <div class="step" id="c4">
+                <div class="handoff-screen">
+                    <div class="handoff-icon">&#9989;</div>
+                    <p class="handoff-title">ご回答ありがとうございます！</p>
+                    <p class="handoff-desc">スタッフが口コミを準備しています。<br>このまましばらくお待ちください。</p>
+                    <p style="font-size:13px; color:#999; margin-bottom:8px;">セッションコード</p>
+                    <div class="session-code" id="customerSessionCode"></div>
+                    <p style="font-size:13px; color:#aaa; margin-top:12px;">スタッフに上のコードをお伝えください</p>
+                    <div id="customerWaiting" style="margin-top:24px;">
+                        <p style="font-size:15px; color:#0077b6; font-weight:600;">
+                            <span class="waiting-dots">準備中</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <!-- C5: 口コミ受信 → 確認 → 投稿 -->
+            <div class="step" id="c5">
+                <h3 style="text-align:center; margin-bottom:4px;">投稿内容のご確認</h3>
+                <p class="confirm-text">こちらの口コミ文をGoogleマップに<br>投稿していただけると大変嬉しいです！</p>
+                <div class="review-preview" id="reviewPreview">
+                    <p id="reviewText"></p>
+                </div>
+                <p style="font-size:13px; color:#999; text-align:center; margin-bottom:8px;">ボタンを押すとGoogleマップの投稿画面が開きます。<br>口コミ欄に文章を貼り付けて投稿してください。</p>
+                <div class="nav-buttons">
+                    <button class="btn btn-submit" onclick="submitToGoogle()">Googleマップを開く</button>
+                </div>
+            </div>
+            <!-- C6: 完了 -->
+            <div class="step" id="c6">
+                <div class="done-icon">&#127881;</div>
+                <p class="done-text">ご協力ありがとうございます！</p>
+                <p class="done-sub" id="doneMessage"></p>
+                <div style="background:#f0faf2; border-radius:12px; padding:20px; margin-top:20px; text-align:center;">
+                    <p style="font-size:15px; color:#333; line-height:1.8;">
+                        Googleマップの投稿画面が開きます。<br><br>
+                        <strong style="font-size:17px;">&#11088; 星を<span id="doneStarCount"></span>つタップ</strong><br><br>
+                        その後、口コミ入力欄を長押しして<br>
+                        <strong>「貼り付け」</strong>を選んでください。<br>
+                        文章が自動で入力されます。
+                    </p>
+                </div>
+                <p style="text-align:center; margin-top:24px; font-size:15px; color:#555; line-height:1.8;" id="thankYouMessage"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== スタッフモード ===== -->
+    <div id="staffMode" style="display:none">
+        <div class="header header-staff">
+            <h1>スタッフ管理画面</h1>
+            <p>お客様のアンケートを確認・口コミを編集</p>
+        </div>
+        <div class="content">
+            <!-- S0: セッションコード入力 -->
+            <div class="step active" id="s0">
+                <div style="text-align:center;"><span class="staff-badge">スタッフ専用</span></div>
+                <h3 style="text-align:center; margin-bottom:16px;">セッションコードを入力</h3>
+                <p class="confirm-text">お客様の画面に表示されている<br>6桁のコードを入力してください</p>
+                <input class="code-input" type="tel" id="staffCodeInput" maxlength="6" inputmode="numeric" placeholder="000000">
+                <p style="color:#ea4335; font-size:14px; text-align:center; min-height:20px; margin-top:8px;" id="staffCodeError"></p>
+                <div class="nav-buttons">
+                    <button class="btn btn-back" onclick="backToLanding()">戻る</button>
+                    <button class="btn btn-next" onclick="staffLoadSession()">読み込む</button>
+                </div>
+            </div>
+            <!-- S1: お客様情報 + 口コミ編集 -->
+            <div class="step" id="s1">
+                <div style="text-align:center;"><span class="staff-badge">スタッフ専用</span></div>
+                <div id="staffCustomerInfo"></div>
+                <h3 style="text-align:center; margin:16px 0 4px;">口コミ編集</h3>
+                <p class="confirm-text">必要に応じて編集してください</p>
+                <textarea class="review-edit" id="staffReviewEdit" style="display:block;"></textarea>
+                <div class="nav-buttons">
+                    <button class="btn btn-back" onclick="sGoTo(0)">戻る</button>
+                    <button class="btn btn-next" onclick="sGoTo(2)">プレビュー</button>
+                </div>
+            </div>
+            <!-- S2: お客様に見せる確認画面 -->
+            <div class="step" id="s2">
+                <h3 style="text-align:center; margin-bottom:4px;">投稿内容の確認</h3>
+                <p class="confirm-text">お客様にこの画面をお見せください</p>
+                <div class="review-preview">
+                    <p id="staffPreviewText"></p>
+                </div>
+                <div class="nav-buttons">
+                    <button class="btn btn-back" onclick="sGoTo(1)">編集に戻る</button>
+                    <button class="btn btn-submit" onclick="staffConfirm()">この内容で確定する</button>
+                </div>
+            </div>
+            <!-- S3: 送信完了 -->
+            <div class="step" id="s3">
+                <div class="handoff-screen">
+                    <div class="handoff-icon">&#9989;</div>
+                    <p class="handoff-title">お客様に送信しました！</p>
+                    <p class="handoff-desc">お客様のスマートフォンに<br>口コミ文が表示されます。</p>
+                    <div class="nav-buttons" style="justify-content:center;">
+                        <button class="btn btn-next" style="max-width:240px;" onclick="backToLanding()">トップに戻る</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button class="gear-btn" onclick="openSettings()">&#9881;</button>
+
+<div class="settings-panel" id="settingsPanel">
+    <div class="settings-box">
+        <h2>店舗設定</h2>
+        <label>店舗名</label>
+        <input type="text" id="settingShopName" placeholder="例: i.so-ji（アイソウジ）">
+        <label>Google マップの口コミURL</label>
+        <input type="text" id="settingReviewUrl" placeholder="例: https://g.page/r/CxxxxEBx/review">
+        <p style="font-size:12px; color:#888; margin-top:4px; line-height:1.5;">
+            取得方法：Googleで自分の店舗名を検索 → 「クチコミを書く」を右クリック → 「リンクのアドレスをコピー」<br>
+            または <a href="https://business.google.com/" target="_blank" style="color:#0077b6;">Google ビジネスプロフィール</a>
+            → 「クチコミを依頼」からリンクを取得
+        </p>
+        <label>業種</label>
+        <input type="text" id="settingBusiness" placeholder="例: ハウスクリーニング">
+        <label>Firebase Realtime Database URL</label>
+        <input type="text" id="settingFirebaseUrl" placeholder="例: https://xxxxx-default-rtdb.firebaseio.com">
+        <p style="font-size:12px; color:#888; margin-top:4px; line-height:1.5;">
+            異なる端末間で通信するために必要です。<br>
+            未設定の場合は同じ端末内（別タブ）でのみ動作します。<br>
+            <a href="https://console.firebase.google.com/" target="_blank" style="color:#0077b6;">Firebase Console</a>
+            で無料プロジェクトを作成し、Realtime DatabaseのURLを貼り付けてください。
+        </p>
+        <label>スプレッドシート記録URL（Google Apps Script）</label>
+        <input type="text" id="settingSheetUrl" placeholder="例: https://script.google.com/macros/s/xxxxx/exec">
+        <p style="font-size:12px; color:#888; margin-top:4px; line-height:1.5;">
+            アンケート結果をスプレッドシートに自動記録します。<br>
+            設定手順は同梱の <strong>gas_setup.js</strong> を参照してください。
+        </p>
+        <h3 style="margin-top:20px; margin-bottom:8px;">アンケート質問</h3>
+        <div id="settingQuestions"></div>
+        <button class="btn btn-back" style="margin-top:8px; width:auto; padding:8px 16px; font-size:13px;" onclick="addQuestionField()">+ 質問を追加</button>
+        <div class="settings-btn-row">
+            <button class="btn btn-back" onclick="closeSettings()">キャンセル</button>
+            <button class="btn btn-next" onclick="saveSettings()">保存</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ===== サービスデータ =====
+    const SERVICES = [
+        {
+            name: 'エアコンクリーニング',
+            concerns: [
+                { id: 'ac_smell', label: 'カビ・臭いが気になっていた' },
+                { id: 'ac_cooling', label: '冷暖房の効きが悪かった' },
+                { id: 'ac_neglect', label: '長期間クリーニングしていなかった' },
+                { id: 'ac_allergy', label: 'アレルギーや健康面が心配だった' }
+            ],
+            reviews: [
+                { text: 'エアコン内部の汚れをしっかり除去してもらい、風がとても爽やかになりました。', tags: [] },
+                { text: 'エアコンの嫌な臭いが気になっていたのですが、クリーニング後は無臭でとても快適です。', tags: ['ac_smell'] },
+                { text: 'エアコンの中のカビをプロの洗浄ですっきりキレイにしてもらいました。', tags: ['ac_smell'] },
+                { text: 'エアコンクリーニングをしていただき、冷房の効きが見違えるように良くなりました。', tags: ['ac_cooling'] },
+                { text: 'クリーニング後はエアコンの風が軽くなり、電気代の節約にもつながりそうです。', tags: ['ac_cooling'] },
+                { text: 'エアコンを分解して徹底的に洗浄してもらいました。こんなに汚れていたのかと驚きました。', tags: ['ac_neglect'] },
+                { text: '何年も掃除していなかったエアコンがプロの手で見違えるほどキレイになりました。', tags: ['ac_neglect'] },
+                { text: 'アレルギーが心配でエアコンクリーニングをお願いしましたが、空気がキレイになって快適です。', tags: ['ac_allergy'] },
+                { text: 'プロの技術でエアコン内部をピカピカにしてもらい、気持ちの良い風が出るようになりました。', tags: [] }
+            ]
+        },
+        {
+            name: '浴室クリーニング',
+            concerns: [
+                { id: 'bath_mold', label: 'カビが気になっていた' },
+                { id: 'bath_scale', label: '水垢・ウロコ汚れが気になっていた' },
+                { id: 'bath_neglect', label: '長期間しっかり掃除できていなかった' },
+                { id: 'bath_drain', label: '排水口の汚れ・臭いが気になっていた' }
+            ],
+            reviews: [
+                { text: '浴室全体をプロに掃除してもらったら、壁もドアも蛇口もピカピカになって大満足です。', tags: [] },
+                { text: '浴室のカビをしっかり除去してもらい、清潔なお風呂が戻ってきて嬉しいです。', tags: ['bath_mold'] },
+                { text: '浴室の鏡のウロコ汚れをピカピカにしてもらい、見違えるほどキレイになりました。', tags: ['bath_scale'] },
+                { text: '長年放置していた浴室の汚れを徹底的に落としてもらいました。新築のような仕上がりです。', tags: ['bath_neglect'] },
+                { text: '排水口のヌメリや臭いもキレイに除去してもらい、快適になりました。', tags: ['bath_drain'] }
+            ]
+        },
+        {
+            name: 'キッチンクリーニング',
+            concerns: [
+                { id: 'kit_oil', label: '油汚れ・コンロ周りが気になっていた' },
+                { id: 'kit_hood', label: '換気扇・レンジフードが汚れていた' },
+                { id: 'kit_sink', label: 'シンク・排水口の汚れが気になっていた' },
+                { id: 'kit_neglect', label: '長期間しっかり掃除できていなかった' }
+            ],
+            reviews: [
+                { text: 'キッチン全体をプロにキレイにしてもらい、料理するのが楽しくなりました。', tags: [] },
+                { text: 'キッチンの油汚れやコンロ周りをピカピカにしてもらいました。', tags: ['kit_oil'] },
+                { text: '換気扇やレンジフードの頑固な油汚れを徹底的に落としてもらい、吸い込みも良くなりました。', tags: ['kit_hood'] },
+                { text: 'シンクが鏡のように光っていて驚きました。排水口のヌメリもすっきりです。', tags: ['kit_sink'] },
+                { text: '長期間掃除できていなかったキッチンがプロの手で見違えるほどキレイになりました。', tags: ['kit_neglect'] }
+            ]
+        },
+        {
+            name: 'トイレクリーニング',
+            concerns: [
+                { id: 'toi_stain', label: '黄ばみ・尿石が気になっていた' },
+                { id: 'toi_smell', label: '臭いが気になっていた' },
+                { id: 'toi_overall', label: '全体的にしっかり掃除したかった' }
+            ],
+            reviews: [
+                { text: 'トイレの隅々まで丁寧に清掃してもらい、清潔感が格段に上がりました。', tags: [] },
+                { text: 'トイレの黄ばみや尿石を完璧に落としてもらいました。便器がツルツルになって気持ちいいです。', tags: ['toi_stain'] },
+                { text: '臭いの原因だった汚れまでしっかり除去してもらい、快適な空間になりました。', tags: ['toi_smell'] },
+                { text: 'トイレの壁や床まで丁寧に拭き上げてもらい、空間全体が清潔になりました。', tags: ['toi_overall'] }
+            ]
+        },
+        {
+            name: '洗濯機分解洗浄',
+            concerns: [
+                { id: 'wash_debris', label: '洗濯物にカスや汚れが付くようになった' },
+                { id: 'wash_smell', label: '洗濯物の臭いが気になっていた' },
+                { id: 'wash_mold', label: 'カビが心配だった' },
+                { id: 'wash_hygiene', label: '小さな子どもがいるので衛生面が心配だった' }
+            ],
+            reviews: [
+                { text: '洗濯機の分解洗浄をお願いしましたが、見えない部分にこんなに汚れが溜まっていたとは驚きです。', tags: [] },
+                { text: '洗濯物に黒いカスが付くのが悩みでしたが、分解洗浄後は一切なくなりました。', tags: ['wash_debris'] },
+                { text: '洗濯物の生乾き臭がすっかりなくなりました。もっと早く頼めば良かったです。', tags: ['wash_smell'] },
+                { text: '洗濯機を分解洗浄してもらったら、中からびっくりするほどの汚れが出てきました。', tags: ['wash_mold'] },
+                { text: '小さな子どもの衣類を洗うので衛生面が気になっていましたが、分解洗浄で安心できるようになりました。', tags: ['wash_hygiene'] }
+            ]
+        },
+        {
+            name: '排水管洗浄',
+            concerns: [
+                { id: 'drain_clog', label: '排水の流れが悪くなっていた' },
+                { id: 'drain_smell', label: '排水口の臭いが気になっていた' },
+                { id: 'drain_maint', label: '定期メンテナンスとして依頼した' }
+            ],
+            reviews: [
+                { text: '排水管洗浄をお願いしたら、水の流れが見違えるように良くなりました。', tags: [] },
+                { text: '排水管の詰まりが気になっていたのですが、高圧洗浄でスッキリ通るようになりました。', tags: ['drain_clog'] },
+                { text: '排水口の嫌な臭いが消えました。排水管の中までしっかり洗浄してもらえて安心です。', tags: ['drain_smell'] },
+                { text: '排水管の定期洗浄をお願いしましたが、作業も丁寧で仕上がりも満足です。', tags: ['drain_maint'] }
+            ]
+        },
+        {
+            name: '床・フロアクリーニング',
+            concerns: [
+                { id: 'floor_wax', label: 'ワックスの剥がれ・くすみが気になっていた' },
+                { id: 'floor_stain', label: '汚れや黒ずみが気になっていた' },
+                { id: 'floor_family', label: '子どもやペットがいるので清潔にしたかった' }
+            ],
+            reviews: [
+                { text: '床の汚れやくすみが一掃されて、部屋全体が明るくなった気がします。', tags: [] },
+                { text: '床のワックスがけまでしてもらい、フローリングがツヤツヤに蘇りました。', tags: ['floor_wax'] },
+                { text: '床の黒ずみが気になっていたのですが、ピカピカにしてもらえて気持ちいいです。', tags: ['floor_stain'] },
+                { text: '子どもが素足で歩くので清潔にしたかったのですが、ピカピカに仕上げてもらえて安心です。', tags: ['floor_family'] }
+            ]
+        },
+        {
+            name: '風呂釜洗浄',
+            concerns: [
+                { id: 'boiler_dirt', label: 'お湯に汚れが浮いていた' },
+                { id: 'boiler_smell', label: '追い焚きの臭いが気になっていた' },
+                { id: 'boiler_hygiene', label: '小さな子どもがいるので衛生面が心配だった' }
+            ],
+            reviews: [
+                { text: '風呂釜洗浄で配管内の雑菌やヌメリをしっかり除去してもらいました。', tags: [] },
+                { text: '風呂釜の配管洗浄をしてもらったら、お湯に浮かんでいた汚れがなくなりました。', tags: ['boiler_dirt'] },
+                { text: '追い焚きの臭いが気になっていたので依頼しましたが、無臭のキレイなお湯に戻りました。', tags: ['boiler_smell'] },
+                { text: '小さな子どもがいるので衛生面が心配でしたが、風呂釜洗浄で安心して入浴させられます。', tags: ['boiler_hygiene'] }
+            ]
+        },
+        {
+            name: 'マットレスクリーニング',
+            concerns: [
+                { id: 'mat_stain', label: '染みや汚れが気になっていた' },
+                { id: 'mat_smell', label: '臭いが気になっていた' },
+                { id: 'mat_allergy', label: 'ダニやアレルギーが心配だった' }
+            ],
+            reviews: [
+                { text: '長年使っていたマットレスがクリーニングでここまでキレイになるとは思いませんでした。', tags: [] },
+                { text: 'マットレスのクリーニングをお願いしたら、染みがすっきり取れて見た目もキレイになりました。', tags: ['mat_stain'] },
+                { text: 'マットレスの臭いが気になっていたのですが、クリーニング後はすっきり爽やかになりました。', tags: ['mat_smell'] },
+                { text: 'マットレスクリーニングで見えない汚れやダニまで除去してもらい、毎日ぐっすり眠れます。', tags: ['mat_allergy'] }
+            ]
+        },
+        {
+            name: '洗面所クリーニング',
+            concerns: [
+                { id: 'sink_scale', label: '水垢・黄ばみが気になっていた' },
+                { id: 'sink_drain', label: '排水口のヌメリが気になっていた' },
+                { id: 'sink_mirror', label: '鏡の汚れが気になっていた' }
+            ],
+            reviews: [
+                { text: '洗面所の隅々までキレイにしてもらい、清潔感が戻りました。', tags: [] },
+                { text: '洗面台の水垢や黄ばみをキレイに落としてもらい、毎朝の身支度が気持ち良くなりました。', tags: ['sink_scale'] },
+                { text: '洗面台の排水口のヌメリや蛇口の水垢まで丁寧に掃除してもらえました。', tags: ['sink_drain'] },
+                { text: '鏡のくもりや水はねの跡もピカピカに磨いてもらい、朝の身支度が快適です。', tags: ['sink_mirror'] }
+            ]
+        },
+        {
+            name: '空室クリーニング',
+            concerns: [
+                { id: 'vacant_moveout', label: '退去後の原状回復として' },
+                { id: 'vacant_viewing', label: '内見・入居前にキレイにしたかった' },
+                { id: 'vacant_multi', label: '複数物件を管理している' }
+            ],
+            reviews: [
+                { text: '空室クリーニングをお任せしましたが、水回りからフローリングまで完璧な仕上がりでした。', tags: [] },
+                { text: '退去後の空室クリーニングをお願いしましたが、新築同様の仕上がりで大満足です。', tags: ['vacant_moveout'] },
+                { text: '内見前にお願いしましたが、ピカピカの状態で入居者候補さんに見せられました。', tags: ['vacant_viewing'] },
+                { text: '複数物件を管理していますが、毎回安定した品質で仕上げてくれるので助かっています。', tags: ['vacant_multi'] }
+            ]
+        },
+        {
+            name: '大掃除・まるごとクリーニング',
+            concerns: [
+                { id: 'all_busy', label: '忙しくて掃除する時間がなかった' },
+                { id: 'all_seasonal', label: '年末大掃除・季節の節目として' },
+                { id: 'all_move', label: '引っ越し前後のクリーニングとして' },
+                { id: 'all_whole', label: '家全体をまとめてキレイにしたかった' }
+            ],
+            reviews: [
+                { text: '家全体の大掃除をお願いしましたが、一日でこんなにキレイになるとは驚きです。', tags: [] },
+                { text: '忙しくて掃除する時間がなかったので丸ごとお願いしましたが、隅々までキレイで感動しました。', tags: ['all_busy'] },
+                { text: '年末の大掃除を丸ごとお任せしました。どの部屋もピカピカになって気持ちよく新年を迎えられました。', tags: ['all_seasonal'] },
+                { text: '引っ越し前に家全体をクリーニングしてもらいましたが、仕上がりが素晴らしかったです。', tags: ['all_move'] },
+                { text: '水回りからリビングまで、家全体をまるごとクリーニングしてもらいました。新居のようです。', tags: ['all_whole'] }
+            ]
+        }
+    ];
+
+    const POSITIVE_MAP = {
+        'スタッフの対応が丁寧だった': [
+            'スタッフの方がとても丁寧で、気持ちの良い対応をしてくださいました。',
+            'スタッフの方の対応がとても親切で、安心してお任せできました。',
+            '担当の方がとても礼儀正しく、丁寧に対応してくださいました。',
+            '電話対応から当日の作業まで、終始丁寧な対応でした。',
+            '細かい気配りが行き届いたスタッフさんで、最初から最後まで安心でした。'
+        ],
+        '清掃の仕上がりに満足した': [
+            '仕上がりは素晴らしく、見違えるほどキレイになりました。',
+            'プロの技術でピカピカに仕上げていただき、大変満足しています。',
+            '隅々まで丁寧に清掃されていて、仕上がりのクオリティに感動しました。',
+            '期待以上の仕上がりで、家族みんなで喜んでいます。',
+            '仕上がりを見た瞬間、思わず「すごい！」と声が出ました。'
+        ],
+        '作業前の説明が分かりやすかった': [
+            '作業前にしっかりと説明をしてくれたので、安心してお任せできました。',
+            '事前の説明が丁寧で、作業内容や料金について分かりやすかったです。',
+            '見積もりの段階から丁寧に説明があり、納得した上でお願いできました。',
+            '汚れの原因や対処法まで丁寧に教えてくれて、とても勉強になりました。',
+            '質問にも一つ一つ丁寧に答えてくれて、信頼感がありました。'
+        ],
+        '料金が適正だと感じた': [
+            '料金も明確で、この仕上がりならコスパが良いと感じました。',
+            '価格以上のクオリティで、とても満足のいくコストパフォーマンスでした。',
+            '追加料金もなく、見積もり通りの明朗会計で安心でした。',
+            '料金に見合った、いやそれ以上の仕上がりで大満足です。',
+            '他社と比較しても、価格と品質のバランスがとても良いと感じました。'
+        ],
+        '作業時間が予定通りだった': [
+            '作業時間も予定通りで、スムーズに対応していただけました。',
+            '時間通りにきっちり作業を終えてくれたので助かりました。',
+            'テキパキと効率よく作業を進めてくれて、予定通りに完了しました。',
+            '約束の時間にきっちり来てくれて、作業もスムーズでした。',
+            '手際が良く、予定よりも早く作業を終えていただけました。'
+        ],
+        '友人や知人にもおすすめしたい': [
+            '友人にもぜひおすすめしたいと思います。またお願いしたいです！',
+            '周りにも自信を持っておすすめできるクリーニング業者さんです。',
+            '家族や友人にも積極的にすすめたいと思えるサービスでした。',
+            '自分も次回もお願いしたいですし、周りにもぜひ紹介したいです。',
+            'ママ友にも早速おすすめしました。きっと喜んでもらえると思います。'
+        ]
+    };
+
+    const DEFAULT_CONFIG = {
+        shopName: 'i.so-ji（アイソウジ）',
+        reviewUrl: 'https://www.google.com/maps/place//data=!4m3!3m2!1s0x6d1a0c7099482a4b:0xbb1e8dbba02f89be!12e1',
+        business: 'ハウスクリーニング',
+        firebaseUrl: '',
+        sheetUrl: '',
+        questions: [
+            'スタッフの対応が丁寧だった',
+            '清掃の仕上がりに満足した',
+            '作業前の説明が分かりやすかった',
+            '料金が適正だと感じた',
+            '作業時間が予定通りだった',
+            '友人や知人にもおすすめしたい'
+        ]
+    };
+
+    // ===== 状態管理 =====
+    let config = loadConfig();
+    let cStep = 0;
+    let starRating = 0;
+    let selectedServices = [];
+    let visitType = null;
+    let selectedConcerns = [];
+    let concernOtherText = '';
+    let answers = {};
+    let questionOtherText = '';
+    let sessionCode = '';
+    let sStep = 0;
+    let staffSessionData = null;
+    let customerListener = null;
+
+    function loadConfig() {
+        const saved = localStorage.getItem('reviewAppConfig');
+        const version = localStorage.getItem('reviewAppVersion');
+        if (version !== '10') {
+            localStorage.removeItem('reviewAppConfig');
+            localStorage.setItem('reviewAppVersion', '10');
+            return { ...DEFAULT_CONFIG, questions: [...DEFAULT_CONFIG.questions] };
+        }
+        return saved ? JSON.parse(saved) : { ...DEFAULT_CONFIG, questions: [...DEFAULT_CONFIG.questions] };
+    }
+
+    function saveConfigData(c) {
+        config = c;
+        localStorage.setItem('reviewAppConfig', JSON.stringify(config));
+    }
+
+    // ===== データ同期レイヤー =====
+    function generateCode() {
+        return String(Math.floor(100000 + Math.random() * 900000));
+    }
+
+    async function syncWrite(code, data) {
+        if (config.firebaseUrl) {
+            const url = `${config.firebaseUrl.replace(/\/$/, '')}/sessions/${code}.json`;
+            await fetch(url, { method: 'PUT', body: JSON.stringify(data) });
+        } else {
+            localStorage.setItem(`session_${code}`, JSON.stringify(data));
+        }
+    }
+
+    async function syncRead(code) {
+        if (config.firebaseUrl) {
+            const url = `${config.firebaseUrl.replace(/\/$/, '')}/sessions/${code}.json`;
+            const res = await fetch(url);
+            return await res.json();
+        } else {
+            const d = localStorage.getItem(`session_${code}`);
+            return d ? JSON.parse(d) : null;
+        }
+    }
+
+    function syncListen(code, callback) {
+        if (config.firebaseUrl) {
+            const url = `${config.firebaseUrl.replace(/\/$/, '')}/sessions/${code}.json`;
+            const es = new EventSource(url + '?alt=sse');
+            es.addEventListener('put', (e) => {
+                const data = JSON.parse(e.data);
+                if (data.data) callback(data.data);
+            });
+            return es;
+        } else {
+            const handler = (e) => {
+                if (e.key === `session_${code}`) {
+                    const data = JSON.parse(e.newValue);
+                    if (data) callback(data);
+                }
+            };
+            window.addEventListener('storage', handler);
+            // ポーリングも追加（同じタブ対策）
+            const interval = setInterval(async () => {
+                const data = await syncRead(code);
+                if (data && data.status === 'review_ready') {
+                    callback(data);
+                    clearInterval(interval);
+                }
+            }, 2000);
+            return { close: () => { window.removeEventListener('storage', handler); clearInterval(interval); } };
+        }
+    }
+
+    // ===== ユーティリティ =====
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function shuffle(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+
+    // ===== ランディング =====
+    function updateShopNames() {
+        const name = config.shopName || '当店';
+        const msg = `${name}をご利用いただきありがとうございます`;
+        document.getElementById('shopNameLanding').textContent = msg;
+        document.getElementById('shopNameCustomer').textContent = msg;
+    }
+
+    function startCustomer() {
+        document.getElementById('landingMode').style.display = 'none';
+        document.getElementById('customerMode').style.display = 'block';
+        initCustomer();
+    }
+
+    function startStaff() {
+        document.getElementById('landingMode').style.display = 'none';
+        document.getElementById('staffMode').style.display = 'block';
+    }
+
+    function backToLanding() {
+        document.getElementById('customerMode').style.display = 'none';
+        document.getElementById('staffMode').style.display = 'none';
+        document.getElementById('landingMode').style.display = 'block';
+        if (customerListener) { customerListener.close(); customerListener = null; }
+    }
+
+    // ===== お客様モード =====
+    function initCustomer() {
+        cStep = 0; starRating = 0; selectedServices = []; visitType = null;
+        selectedConcerns = []; concernOtherText = ''; answers = {}; questionOtherText = '';
+
+        document.querySelectorAll('#customerMode .step').forEach(s => s.classList.remove('active'));
+        document.getElementById('c0').classList.add('active');
+        document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
+        document.getElementById('btnStarNext').disabled = true;
+
+        // サービスボタン生成
+        const sg = document.getElementById('serviceGrid');
+        sg.innerHTML = '';
+        SERVICES.forEach((s, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'service-btn';
+            btn.textContent = s.name;
+            btn.addEventListener('click', () => toggleService(i, btn));
+            sg.appendChild(btn);
+        });
+
+        // チェックリスト生成
+        const cl = document.getElementById('checklist');
+        cl.innerHTML = '';
+        config.questions.forEach((q, i) => {
+            const item = document.createElement('div');
+            item.className = 'check-item'; item.id = `qi${i}`;
+            item.innerHTML = `
+                <div class="check-item-label">
+                    <div class="check-icon"><span>&#10003;</span></div>
+                    <span class="check-label">${q}</span>
+                </div>
+                <div class="yn-buttons">
+                    <button class="yn-btn yes-btn" onclick="answerQ(${i},'yes')">はい</button>
+                    <button class="yn-btn no-btn" onclick="answerQ(${i},'no')">いいえ</button>
+                </div>`;
+            cl.appendChild(item);
+        });
+        // その他
+        const otherItem = document.createElement('div');
+        otherItem.className = 'check-item'; otherItem.id = 'qiOther';
+        otherItem.innerHTML = `
+            <div class="check-item-label">
+                <div class="check-icon"><span>&#10003;</span></div>
+                <span class="check-label">その他（自由記載）</span>
+            </div>
+            <div class="yn-buttons">
+                <button class="yn-btn yes-btn" onclick="answerQOther('yes')">はい</button>
+                <button class="yn-btn no-btn" onclick="answerQOther('no')">いいえ</button>
+            </div>
+            <textarea class="other-textarea" id="questionOtherTextarea" placeholder="伝えたいことを自由にご記入ください" style="display:none;margin-top:10px;margin-left:36px;width:calc(100% - 36px);"></textarea>`;
+        cl.appendChild(otherItem);
+
+        updateCProgress();
+    }
+
+    // 星評価
+    document.getElementById('starRating').addEventListener('click', (e) => {
+        if (e.target.classList.contains('star')) {
+            starRating = parseInt(e.target.dataset.value);
+            document.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('active', i < starRating));
+            document.getElementById('btnStarNext').disabled = false;
+        }
+    });
+
+    // サービス選択（複数）
+    function toggleService(index, btn) {
+        const idx = selectedServices.indexOf(index);
+        if (idx >= 0) { selectedServices.splice(idx, 1); btn.classList.remove('selected'); }
+        else { selectedServices.push(index); btn.classList.add('selected'); }
+        document.getElementById('btnServiceNext').disabled = selectedServices.length === 0;
+    }
+
+    // 初回/リピート
+    function setVisitType(type) {
+        visitType = type;
+        document.getElementById('btnFirst').classList.toggle('selected', type === 'first');
+        document.getElementById('btnRepeat').classList.toggle('selected', type === 'repeat');
+        checkDetailReady();
+    }
+
+    // お悩み
+    function toggleConcern(id, btn) {
+        const idx = selectedConcerns.indexOf(id);
+        if (idx >= 0) { selectedConcerns.splice(idx, 1); btn.classList.remove('selected'); }
+        else { selectedConcerns.push(id); btn.classList.add('selected'); }
+        checkDetailReady();
+    }
+
+    function checkDetailReady() {
+        const hasOther = selectedConcerns.includes('_other');
+        const otherValid = !hasOther || concernOtherText.length > 0;
+        const hasReal = selectedConcerns.filter(c => c !== '_other').length > 0;
+        const hasConcern = hasReal || (hasOther && otherValid);
+        document.getElementById('btnDetailNext').disabled = !(visitType && hasConcern);
+    }
+
+    function initDetailStep() {
+        const list = document.getElementById('concernList');
+        list.innerHTML = ''; selectedConcerns = []; concernOtherText = '';
+        visitType = null;
+        document.getElementById('btnFirst').classList.remove('selected');
+        document.getElementById('btnRepeat').classList.remove('selected');
+        document.getElementById('btnDetailNext').disabled = true;
+
+        // 選択された全サービスのお悩みを表示
+        selectedServices.forEach(si => {
+            const service = SERVICES[si];
+            if (selectedServices.length > 1) {
+                const label = document.createElement('p');
+                label.style.cssText = 'font-size:13px;color:#0077b6;font-weight:600;margin-top:12px;margin-bottom:4px;';
+                label.textContent = service.name;
+                list.appendChild(label);
+            }
+            service.concerns.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = 'concern-btn'; btn.textContent = c.label;
+                btn.addEventListener('click', () => toggleConcern(c.id, btn));
+                list.appendChild(btn);
+            });
+        });
+        // その他
+        const otherBtn = document.createElement('button');
+        otherBtn.className = 'concern-btn'; otherBtn.textContent = 'その他';
+        const otherArea = document.createElement('textarea');
+        otherArea.className = 'other-textarea'; otherArea.placeholder = '具体的な内容を入力してください';
+        otherArea.style.display = 'none';
+        otherArea.addEventListener('input', () => { concernOtherText = otherArea.value.trim(); checkDetailReady(); });
+        otherBtn.addEventListener('click', () => {
+            const sel = otherBtn.classList.toggle('selected');
+            otherArea.style.display = sel ? 'block' : 'none';
+            if (!sel) { otherArea.value = ''; concernOtherText = ''; }
+            else otherArea.focus();
+            const idx = selectedConcerns.indexOf('_other');
+            if (sel && idx < 0) selectedConcerns.push('_other');
+            if (!sel && idx >= 0) selectedConcerns.splice(idx, 1);
+            checkDetailReady();
+        });
+        list.appendChild(otherBtn); list.appendChild(otherArea);
+    }
+
+    // アンケート回答
+    function answerQ(index, value) {
+        answers[index] = value;
+        const item = document.getElementById(`qi${index}`);
+        item.classList.remove('answered-yes', 'answered-no');
+        item.classList.add(value === 'yes' ? 'answered-yes' : 'answered-no');
+        item.querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected'));
+        item.querySelector(value === 'yes' ? '.yes-btn' : '.no-btn').classList.add('selected');
+        checkAllAnswered();
+    }
+
+    function answerQOther(value) {
+        answers['_other'] = value;
+        const item = document.getElementById('qiOther');
+        item.classList.remove('answered-yes', 'answered-no');
+        item.classList.add(value === 'yes' ? 'answered-yes' : 'answered-no');
+        item.querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected'));
+        item.querySelector(value === 'yes' ? '.yes-btn' : '.no-btn').classList.add('selected');
+        const ta = document.getElementById('questionOtherTextarea');
+        if (value === 'yes') { ta.style.display = 'block'; ta.focus(); ta.oninput = () => { questionOtherText = ta.value.trim(); }; }
+        else { ta.style.display = 'none'; ta.value = ''; questionOtherText = ''; }
+        checkAllAnswered();
+    }
+
+    function checkAllAnswered() {
+        const all = config.questions.every((_, i) => answers[i] !== undefined) && answers['_other'] !== undefined;
+        document.getElementById('btnCheckNext').disabled = !all;
+    }
+
+    // ナビゲーション
+    function cGoTo(step) {
+        document.getElementById(`c${cStep}`).classList.remove('active');
+        cStep = step;
+        document.getElementById(`c${cStep}`).classList.add('active');
+        if (cStep === 2) initDetailStep();
+        updateCProgress();
+    }
+
+    function updateCProgress() {
+        const bar = document.getElementById('progressBar');
+        bar.style.display = (cStep >= 4) ? 'none' : 'flex';
+        for (let i = 0; i < 4; i++) {
+            const ps = document.getElementById(`ps${i}`);
+            ps.classList.remove('active', 'done');
+            if (i < cStep) ps.classList.add('done');
+            else if (i === cStep) ps.classList.add('active');
+        }
+        for (let i = 0; i < 3; i++) {
+            document.getElementById(`pl${i}`).classList.toggle('done', i < cStep);
+        }
+    }
+
+    // お客様送信
+    async function customerSubmit() {
+        sessionCode = generateCode();
+        const data = {
+            status: 'waiting',
+            starRating, selectedServices, visitType,
+            selectedConcerns: selectedConcerns.filter(c => c !== '_other'),
+            concernOtherText,
+            answers, questionOtherText,
+            review: null,
+            createdAt: Date.now()
+        };
+        await syncWrite(sessionCode, data);
+        document.getElementById('customerSessionCode').textContent = sessionCode;
+        cGoTo(4);
+
+        // スタッフからの口コミを待つ
+        customerListener = syncListen(sessionCode, (updated) => {
+            if (updated.status === 'review_ready' && updated.review) {
+                document.getElementById('reviewText').textContent = updated.review;
+                cGoTo(5);
+                if (customerListener) { customerListener.close(); customerListener = null; }
+            }
+        });
+    }
+
+    // Google投稿
+    function submitToGoogle() {
+        const text = document.getElementById('reviewText').textContent;
+        navigator.clipboard.writeText(text).catch(() => {
+            const ta = document.createElement('textarea');
+            ta.value = text; document.body.appendChild(ta); ta.select();
+            document.execCommand('copy'); document.body.removeChild(ta);
+        });
+
+        document.getElementById('doneStarCount').textContent = starRating;
+        const shopName = config.shopName || '当店';
+        document.getElementById('thankYouMessage').innerHTML =
+            `${shopName}をご利用いただき<br>誠にありがとうございました。<br>またのご利用を心よりお待ちしております。`;
+
+        if (config.reviewUrl) {
+            document.getElementById('doneMessage').innerHTML = '口コミがコピーされました。<br>まもなくGoogleマップの投稿画面が開きます。';
+            cGoTo(6);
+            setTimeout(() => { window.open(config.reviewUrl, '_blank'); }, 1500);
+        } else {
+            document.getElementById('doneMessage').innerHTML = '口コミがクリップボードにコピーされました。<br>口コミURLが未設定です。設定画面から登録してください。';
+            cGoTo(6);
+        }
+    }
+
+    // ===== スタッフモード =====
+    function sGoTo(step) {
+        document.getElementById(`s${sStep}`).classList.remove('active');
+        sStep = step;
+        document.getElementById(`s${sStep}`).classList.add('active');
+        if (sStep === 2) {
+            document.getElementById('staffPreviewText').textContent = document.getElementById('staffReviewEdit').value;
+        }
+    }
+
+    async function staffLoadSession() {
+        const code = document.getElementById('staffCodeInput').value.trim();
+        if (code.length !== 6) {
+            document.getElementById('staffCodeError').textContent = '6桁のコードを入力してください';
+            return;
+        }
+        const data = await syncRead(code);
+        if (!data) {
+            document.getElementById('staffCodeError').textContent = 'セッションが見つかりません';
+            return;
+        }
+        document.getElementById('staffCodeError').textContent = '';
+        staffSessionData = data;
+        sessionCode = code;
+
+        // お客様情報表示
+        const infoDiv = document.getElementById('staffCustomerInfo');
+        const serviceNames = data.selectedServices.map(i => SERVICES[i].name).join('、');
+        const stars = '★'.repeat(data.starRating) + '☆'.repeat(5 - data.starRating);
+        const vt = data.visitType === 'first' ? '初めて利用' : '2回目以上';
+        const concernLabels = [];
+        data.selectedServices.forEach(si => {
+            SERVICES[si].concerns.forEach(c => {
+                if (data.selectedConcerns.includes(c.id)) concernLabels.push(c.label);
+            });
+        });
+        if (data.concernOtherText) concernLabels.push(`その他: ${data.concernOtherText}`);
+
+        const yesQs = []; const noQs = [];
+        config.questions.forEach((q, i) => {
+            if (data.answers[i] === 'yes') yesQs.push(q); else if (data.answers[i] === 'no') noQs.push(q);
+        });
+
+        infoDiv.innerHTML = `
+            <div class="info-card">
+                <h4>お客様の回答</h4>
+                <p><span class="info-stars">${stars}</span></p>
+                <p><strong>サービス:</strong> ${serviceNames}</p>
+                <p><strong>利用:</strong> ${vt}</p>
+                <p><strong>きっかけ:</strong> ${concernLabels.join('、') || 'なし'}</p>
+                ${yesQs.length ? `<p><strong>はい:</strong> ${yesQs.join('、')}</p>` : ''}
+                ${noQs.length ? `<p style="color:#999;"><strong>いいえ:</strong> ${noQs.join('、')}</p>` : ''}
+                ${data.questionOtherText ? `<p><strong>その他:</strong> ${data.questionOtherText}</p>` : ''}
+            </div>`;
+
+        // スプレッドシートに記録
+        sendToSheet(data);
+
+        // 口コミ自動生成
+        const review = generateReview(data);
+        document.getElementById('staffReviewEdit').value = review;
+        sGoTo(1);
+    }
+
+    async function staffConfirm() {
+        const review = document.getElementById('staffReviewEdit').value;
+        staffSessionData.status = 'review_ready';
+        staffSessionData.review = review;
+        await syncWrite(sessionCode, staffSessionData);
+
+        sGoTo(3);
+    }
+
+    // ===== スプレッドシート記録 =====
+    function sendToSheet(data) {
+        if (!config.sheetUrl) return;
+
+        const serviceNames = data.selectedServices.map(i => SERVICES[i].name).join('、');
+        const concernLabels = [];
+        data.selectedServices.forEach(si => {
+            SERVICES[si].concerns.forEach(c => {
+                if (data.selectedConcerns.includes(c.id)) concernLabels.push(c.label);
+            });
+        });
+
+        const yesQs = []; const noQs = [];
+        config.questions.forEach((q, i) => {
+            if (data.answers[i] === 'yes') yesQs.push(q);
+            else if (data.answers[i] === 'no') noQs.push(q);
+        });
+
+        const payload = {
+            starRating: data.starRating,
+            services: serviceNames,
+            visitType: data.visitType,
+            concerns: concernLabels.join('、'),
+            concernOtherText: data.concernOtherText || '',
+            yesAnswers: yesQs.join('、'),
+            noAnswers: noQs.join('、'),
+            questionOtherText: data.questionOtherText || ''
+        };
+
+        fetch(config.sheetUrl, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        }).catch(() => {});
+    }
+
+    // ===== 口コミ生成 =====
+    function generateReview(data) {
+        const name = config.shopName;
+        const serviceNames = data.selectedServices.map(i => SERVICES[i].name);
+        const serviceStr = serviceNames.join('と');
+        const isFirst = data.visitType === 'first';
+        const checked = [];
+        config.questions.forEach((q, i) => { if (data.answers[i] === 'yes') checked.push(q); });
+
+        let review = '';
+
+        // 冒頭文
+        if (data.starRating === 5) {
+            const pool = [
+                `${name}さんに${serviceStr}をお願いしました。大満足です！`,
+                `${name}さんに${serviceStr}を依頼しました。期待以上の仕上がりで感動しました！`,
+                `${name}さんの${serviceStr}を利用しました。プロの仕事で本当にキレイになりました！`,
+                ...(isFirst ? [
+                    `初めて${name}さんに${serviceStr}をお願いしましたが、仕上がりに大感激です！`,
+                    `口コミを見て${name}さんに${serviceStr}をお願いしましたが、評判通りの素晴らしさでした！`
+                ] : [
+                    `今回も${name}さんに${serviceStr}をお願いしました。毎回期待以上の仕上がりです！`,
+                    `リピートで${name}さんに${serviceStr}を依頼しました。今回も大満足です！`
+                ])
+            ];
+            review += pick(pool);
+        } else if (data.starRating === 4) {
+            const pool = [
+                `${name}さんに${serviceStr}をお願いしました。とても良かったです！`,
+                `${name}さんの${serviceStr}を利用しました。満足しています！`,
+                ...(isFirst ? [
+                    `初めて${name}さんの${serviceStr}を利用しましたが、満足のいく仕上がりでした。`
+                ] : [
+                    `今回も${name}さんに${serviceStr}をお願いしました。安定の仕上がりです。`
+                ])
+            ];
+            review += pick(pool);
+        } else {
+            review += pick([
+                `${name}さんに${serviceStr}を依頼しました。`,
+                `${name}さんの${serviceStr}を利用しました。`
+            ]);
+        }
+        review += '\n\n';
+
+        // お悩みその他の自由記載
+        if (data.concernOtherText) review += data.concernOtherText + '\n';
+
+        // 各サービスの口コミ文
+        data.selectedServices.forEach(si => {
+            const service = SERVICES[si];
+            const eligible = service.reviews.filter(r =>
+                r.tags.length === 0 || r.tags.some(t => data.selectedConcerns.includes(t))
+            );
+            review += (eligible.length > 0 ? pick(eligible) : pick(service.reviews)).text + '\n';
+        });
+
+        // アンケート回答から文生成
+        shuffle(checked).forEach(q => {
+            if (POSITIVE_MAP[q]) review += pick(POSITIVE_MAP[q]) + '\n';
+            else review += `${q}。とても良かったです。\n`;
+        });
+
+        // アンケートその他の自由記載
+        if (data.answers['_other'] === 'yes' && data.questionOtherText) {
+            review += data.questionOtherText + '\n';
+        }
+
+        // 締め文
+        if (data.starRating >= 4 && checked.length > 0) {
+            const pool = [
+                `${serviceStr}なら${name}さんがおすすめです！`,
+                '迷っている方にはぜひ一度試してほしいです！',
+                `${name}さん、本当にありがとうございました！`,
+                ...(isFirst ? [
+                    `初めてでしたが、次回も${name}さんにお願いしたいです！`,
+                    `${name}さんに出会えて良かったです。またお願いしたいと思います！`
+                ] : [
+                    `これからも${name}さんにお任せしたいと思います！`,
+                    `いつも安心してお任せできる${name}さん。今後もよろしくお願いします！`
+                ])
+            ];
+            review += '\n' + pick(pool);
+        }
+
+        return review.trim();
+    }
+
+    // ===== 設定画面 =====
+    function openSettings() {
+        document.getElementById('settingShopName').value = config.shopName;
+        document.getElementById('settingReviewUrl').value = config.reviewUrl || '';
+        document.getElementById('settingBusiness').value = config.business;
+        document.getElementById('settingFirebaseUrl').value = config.firebaseUrl || '';
+        document.getElementById('settingSheetUrl').value = config.sheetUrl || '';
+        const qc = document.getElementById('settingQuestions');
+        qc.innerHTML = '';
+        config.questions.forEach(q => addQuestionFieldWithValue(q));
+        document.getElementById('settingsPanel').classList.add('open');
+    }
+
+    function addQuestionFieldWithValue(value) {
+        const qc = document.getElementById('settingQuestions');
+        const div = document.createElement('div');
+        div.style.cssText = 'display:flex;gap:8px;margin-top:8px;align-items:center;';
+        div.innerHTML = `<input type="text" class="q-input" value="${value}" placeholder="質問を入力" style="flex:1;">
+            <button onclick="this.parentElement.remove()" style="background:#ea4335;color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;">&#10005;</button>`;
+        qc.appendChild(div);
+    }
+
+    function addQuestionField() { addQuestionFieldWithValue(''); }
+    function closeSettings() { document.getElementById('settingsPanel').classList.remove('open'); }
+
+    function saveSettings() {
+        const questions = [];
+        document.querySelectorAll('.q-input').forEach(input => { const v = input.value.trim(); if (v) questions.push(v); });
+        saveConfigData({
+            shopName: document.getElementById('settingShopName').value.trim(),
+            reviewUrl: document.getElementById('settingReviewUrl').value.trim(),
+            business: document.getElementById('settingBusiness').value.trim(),
+            firebaseUrl: document.getElementById('settingFirebaseUrl').value.trim(),
+            sheetUrl: document.getElementById('settingSheetUrl').value.trim(),
+            questions
+        });
+        closeSettings();
+        backToLanding();
+        updateShopNames();
+    }
+
+    // ===== 初期化 =====
+    updateShopNames();
+</script>
+</body>
+</html>
