@@ -754,8 +754,8 @@
         shopName: 'i.so-ji（アイソウジ）',
         reviewUrl: 'https://www.google.com/maps/place//data=!4m3!3m2!1s0x6d1a0c7099482a4b:0xbb1e8dbba02f89be!12e1',
         business: 'ハウスクリーニング',
-        firebaseUrl: '',
-        sheetUrl: '',
+        firebaseUrl: 'https://isoji-review-default-rtdb.asia-southeast1.firebasedatabase.app',
+        sheetUrl: 'https://script.google.com/macros/s/AKfycbwKQMDNh4gxZJk5thtN3LPcwpLYM2bj81wbOXw1ObW90JVN5di6nXJTuRejEh44hJZ3Mg/exec',
         questions: [
             'スタッフの対応が丁寧だった',
             '清掃の仕上がりに満足した',
@@ -784,9 +784,9 @@
     function loadConfig() {
         const saved = localStorage.getItem('reviewAppConfig');
         const version = localStorage.getItem('reviewAppVersion');
-        if (version !== '10') {
+        if (version !== '11') {
             localStorage.removeItem('reviewAppConfig');
-            localStorage.setItem('reviewAppVersion', '10');
+            localStorage.setItem('reviewAppVersion', '11');
             return { ...DEFAULT_CONFIG, questions: [...DEFAULT_CONFIG.questions] };
         }
         return saved ? JSON.parse(saved) : { ...DEFAULT_CONFIG, questions: [...DEFAULT_CONFIG.questions] };
