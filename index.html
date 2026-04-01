@@ -408,11 +408,12 @@
                 <p class="done-sub" id="doneMessage"></p>
                 <div style="background:#f0faf2; border-radius:12px; padding:20px; margin-top:20px; text-align:center;">
                     <p style="font-size:15px; color:#333; line-height:1.8;">
-                        Googleマップの投稿画面が開きます。<br><br>
-                        <strong style="font-size:17px;">&#11088; 星を<span id="doneStarCount"></span>つタップ</strong><br><br>
-                        その後、口コミ入力欄を長押しして<br>
-                        <strong>「貼り付け」</strong>を選んでください。<br>
-                        文章が自動で入力されます。
+                        Googleマップが開きます。<br><br>
+                        <strong style="font-size:17px;">&#9312; 星を<span id="doneStarCount"></span>つタップ</strong><br>
+                        <span style="font-size:13px; color:#888;">（クチコミ入力欄が開きます）</span><br><br>
+                        <strong style="font-size:17px;">&#9313; 入力欄を長押し →「貼り付け」</strong><br>
+                        <span style="font-size:13px; color:#888;">（コピー済みの文章が入力されます）</span><br><br>
+                        <strong style="font-size:17px;">&#9314; 投稿ボタンをタップ</strong>
                     </p>
                 </div>
                 <p style="text-align:center; margin-top:24px; font-size:15px; color:#555; line-height:1.8;" id="thankYouMessage"></p>
@@ -752,7 +753,7 @@
 
     const DEFAULT_CONFIG = {
         shopName: 'i.so-ji（アイソウジ）',
-        reviewUrl: 'https://www.google.com/maps/place//data=!4m3!3m2!1s0x6d1a0c7099482a4b:0xbb1e8dbba02f89be!12e1',
+        reviewUrl: 'https://maps.app.goo.gl/QheNzheiT2SqaTtw9',
         business: 'ハウスクリーニング',
         firebaseUrl: 'https://isoji-review-default-rtdb.asia-southeast1.firebasedatabase.app',
         sheetUrl: 'https://script.google.com/macros/s/AKfycbwKQMDNh4gxZJk5thtN3LPcwpLYM2bj81wbOXw1ObW90JVN5di6nXJTuRejEh44hJZ3Mg/exec',
@@ -784,9 +785,9 @@
     function loadConfig() {
         const saved = localStorage.getItem('reviewAppConfig');
         const version = localStorage.getItem('reviewAppVersion');
-        if (version !== '11') {
+        if (version !== '12') {
             localStorage.removeItem('reviewAppConfig');
-            localStorage.setItem('reviewAppVersion', '11');
+            localStorage.setItem('reviewAppVersion', '12');
             return { ...DEFAULT_CONFIG, questions: [...DEFAULT_CONFIG.questions] };
         }
         return saved ? JSON.parse(saved) : { ...DEFAULT_CONFIG, questions: [...DEFAULT_CONFIG.questions] };
