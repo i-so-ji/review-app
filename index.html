@@ -1122,9 +1122,9 @@
             `${shopName}をご利用いただき<br>誠にありがとうございました。<br>またのご利用を心よりお待ちしております。`;
 
         if (config.reviewUrl) {
-            document.getElementById('doneMessage').innerHTML = '口コミがコピーされました。<br>まもなくGoogleマップの投稿画面が開きます。';
+            document.getElementById('doneMessage').innerHTML = '口コミがコピーされました。';
             cGoTo(6);
-            setTimeout(() => { window.open(config.reviewUrl, '_blank'); }, 1500);
+            window.location.href = config.reviewUrl;
         } else {
             document.getElementById('doneMessage').innerHTML = '口コミがクリップボードにコピーされました。<br>口コミURLが未設定です。設定画面から登録してください。';
             cGoTo(6);
